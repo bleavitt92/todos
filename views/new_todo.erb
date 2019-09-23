@@ -1,0 +1,18 @@
+<h2>ID</h2>
+<h2><%= params[:id].to_i %></h2>
+<h2><%= @lists[] %></h2>
+
+<form action="/lists/:id" method="post">
+  <dl>
+    <dt>
+      <label for="todo_item">Enter a new todo item:</label>
+    </dt>
+    <dd>
+      <input name="todo_item" placeholder="Todo Item" type="text" value="">
+    </dd>
+  </dl>
+  <fieldset class="actions">
+    <input type="submit" value="Save">
+    <a href="/">Cancel</a>
+  </fieldset>
+</form>
