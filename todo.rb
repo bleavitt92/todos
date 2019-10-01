@@ -1,5 +1,5 @@
 require "sinatra"
-require "sinatra/reloader"
+require "sinatra/reloader" if development?
 require "sinatra/content_for"
 require "tilt/erubis"
 
@@ -17,6 +17,8 @@ end
 def load_list(id)
   list = session[:lists].find{ |list| list[:id] == id }
   return list if list
+
+  session[:error] = "The specified list was not found."
   redirect "/lists"
 end
 
@@ -153,11 +155,15 @@ post "/lists/:id" do
 end
 
 # Delete an existing list
-post '/lists/:id/destroy' do
+post "/lists/:id/destroy" do
   id = params[:id].to_i
-  @list=load_list(id)
-  session[:lists].delete(@list)
-  redirect "/lists/#{id}"
+  session[:lists].delete_at(id)
+  if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
+    "/lists"
+  else
+    session[:success] = "The list has been deleted."
+    redirect "/lists"
+  end
 end
 
 # Create a new todo item
@@ -175,11 +181,15 @@ end
 post "/lists/:list_id/todos/:id/destroy" do
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
-  todo_id = params[:id].to_i
 
+  todo_id = params[:id].to_i
   @list[:todos].delete_at todo_id
-  session[:success] = "The todo has been deleted."
-  redirect "/lists/#{@list_id}"
+  if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
+    status 204
+  else
+    session[:success] = "The todo has been deleted."
+    redirect "/lists/#{@list_id}"
+  end
 end
 
 # Update status of todo id
